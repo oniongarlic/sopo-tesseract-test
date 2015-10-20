@@ -12,6 +12,11 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     QString p;
 
+    // Workaround for Error: Illegal min or max specification!
+    // "Fatal error encountered!" == NULL:Error:Assert failed:in file globaloc.cpp, line 75
+    // https://github.com/tesseract-ocr/tesseract/issues/94
+    setlocale(LC_NUMERIC, "C");
+
     qmlRegisterType<tesser>("org.tal.tesser", 1, 0, "TesseractOCR");
 
     QFileSystemModel *fsm = new QFileSystemModel(&engine);
