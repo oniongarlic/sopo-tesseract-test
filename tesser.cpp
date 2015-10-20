@@ -4,27 +4,30 @@
 
 #include <leptonica/allheaders.h>
 
-tesser::tesser(QObject *parent) : QObject(parent)
+tesser::tesser(QObject *parent) :
+    QObject(parent),
+    m_running(false)
 {        
     m_tess=new tesseract::TessBaseAPI();
     m_tess->Init(NULL, "eng");
     m_tess->SetPageSegMode(tesseract::PSM_AUTO_OSD);
+    connect(&m_ocrWatcher, SIGNAL(finished()), this, SLOT(ocrFinished()));
 }
 
-bool tesser::ocr(QString filename)
+void tesser::ocrThread(QString filename)
 {
     char *text;
     QImage image(filename);
 
     if (image.isNull())
-        return false;
+        return;
 
     qDebug() << image;
 
     QImage g=image.convertToFormat(QImage::Format_Grayscale8);
     qDebug() << g;
     if (g.isNull())
-        return false;
+        return;
 
     m_tess->SetImage(g.bits(),
                      g.width(),
@@ -61,11 +64,7 @@ bool tesser::ocr(QString filename)
 
     qDebug() << m_text;
 
-    m_tess->Clear();
-
-    emit textAvailable();
-
-    return true;
+    m_tess->Clear();    
 }
 
 QString tesser::getText() const
@@ -76,5 +75,26 @@ QString tesser::getText() const
 tesser::~tesser()
 {
     m_tess->End();
+}
+
+void tesser::ocrFinished()
+{
+    m_running=false;
+    emit runningChanged(m_running);
+    emit textAvailable();
+}
+
+bool tesser::ocr(QString filename)
+{
+    if (m_running==true)
+        return false;
+
+    m_ocrFuture=QtConcurrent::run(this, &tesser::ocrThread, filename);
+
+    m_running=true;
+    emit runningChanged(m_running);
+
+    m_ocrWatcher.setFuture(m_ocrFuture);
+    return true;
 }
 
