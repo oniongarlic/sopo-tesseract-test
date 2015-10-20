@@ -6,7 +6,8 @@
 
 tesser::tesser(QObject *parent) :
     QObject(parent),
-    m_running(false)
+    m_running(false),
+    m_min_conf(50)
 {        
     m_tess=new tesseract::TessBaseAPI();
     m_tess->Init(NULL, "eng");
@@ -42,17 +43,19 @@ void tesser::ocrThread(QString filename)
 
 #if 1
     Boxa* boxes = m_tess->GetComponentImages(tesseract::RIL_BLOCK, true, NULL, NULL);
-    printf("Found %d textline image components.\n", boxes->n);
+    qDebug() << "Textline image components found: " << boxes->n;
 
     for (int i = 0; i < boxes->n; i++) {
-       BOX* box = boxaGetBox(boxes, i, L_CLONE);
-       m_tess->SetRectangle(box->x, box->y, box->w, box->h);
-       text = m_tess->GetUTF8Text();
-       int conf = m_tess->MeanTextConf();
-       fprintf(stdout, "Box[%d]: x=%d, y=%d, w=%d, h=%d, confidence: %d, text: %s",
+        BOX* box = boxaGetBox(boxes, i, L_CLONE);
+        m_tess->SetRectangle(box->x, box->y, box->w, box->h);
+        text = m_tess->GetUTF8Text();
+        int conf = m_tess->MeanTextConf();
+        fprintf(stderr, "Box[%d]: x=%d, y=%d, w=%d, h=%d, confidence: %d, text: %s",
                        i, box->x, box->y, box->w, box->h, conf, text);
-        if (conf>75)
+        if (conf>m_min_conf)
             m_text.append(text);
+        else
+            qDebug() << "Confidence under " << m_min_conf << " skipping";
     }
 #else
     m_tess->Recognize(0);

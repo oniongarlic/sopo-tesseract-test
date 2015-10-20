@@ -44,6 +44,7 @@ private:
     QFuture<void> m_ocrFuture;
     QFutureWatcher<void> m_ocrWatcher;
     bool m_running;
+    int m_min_conf;
 };
 
 #endif // TESSER_H
