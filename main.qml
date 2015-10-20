@@ -77,12 +77,32 @@ ApplicationWindow {
                 console.debug(fileSystemModel.columnCount())
                 console.debug(data);
                 var path=filePicturesPath+"/"+data;
+                sourceImage.source="file://"+path;
                 ocr.ocr(path);
             }
         }
 
         Flickable {
-            Layout.preferredWidth: parent.width/2
+            id: imageContainer
+            clip: true
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            contentHeight: sourceImage.height
+            contentWidth: sourceImage.width
+            Layout.preferredWidth: 400
+            Image {
+                id: sourceImage
+                asynchronous: true
+                fillMode: Image.PreserveAspectFit
+                onStatusChanged: {
+                    console.debug(status);
+                }
+            }
+        }
+
+        Flickable {
+            id: textContainer
+            Layout.preferredWidth: 400
             clip: true
             contentHeight: textResult.height
             contentWidth: textResult.width
