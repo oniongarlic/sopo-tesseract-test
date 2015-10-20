@@ -11,15 +11,20 @@ tesser::tesser(QObject *parent) : QObject(parent)
     m_tess->SetPageSegMode(tesseract::PSM_AUTO_OSD);
 }
 
-void tesser::ocr()
+bool tesser::ocr(QString filename)
 {
     char *text;
-    QImage image("/home/milang/ocrtest2.jpg");
+    QImage image(filename);
+
+    if (image.isNull())
+        return false;
 
     qDebug() << image;
 
     QImage g=image.convertToFormat(QImage::Format_Grayscale8);
     qDebug() << g;
+    if (g.isNull())
+        return false;
 
     m_tess->SetImage(g.bits(),
                      g.width(),
@@ -57,6 +62,15 @@ void tesser::ocr()
     qDebug() << m_text;
 
     m_tess->Clear();
+
+    emit textAvailable();
+
+    return true;
+}
+
+QString tesser::getText() const
+{
+    return m_text;
 }
 
 tesser::~tesser()

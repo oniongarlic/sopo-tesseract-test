@@ -10,10 +10,12 @@ class tesser : public QObject
     Q_OBJECT
 public:
     explicit tesser(QObject *parent = 0);
-    Q_INVOKABLE void ocr();
+    Q_INVOKABLE bool ocr(QString filename);
+    Q_INVOKABLE QString getText() const;
     ~tesser();
 
 signals:
+    void textAvailable();
 
 public slots:
 
