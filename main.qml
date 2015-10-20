@@ -32,6 +32,17 @@ ApplicationWindow {
         }
     }
 
+    statusBar: StatusBar {
+        RowLayout {
+            anchors.fill: parent
+            ProgressBar {
+                width: 200
+                indeterminate: ocr.running
+            }
+            Label { text: ocr.running ? "OCR is running, please wait..." : "" }
+        }
+    }
+
     TesseractOCR {
         id: ocr
         onTextAvailable: {
